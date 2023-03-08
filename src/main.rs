@@ -29,7 +29,7 @@ fn betting(mut balance: isize) -> (isize, usize) {
             Ok(num) => num,
             Err(_) => unreachable!(),
         }; 
-    balance = balance - bet;
+    balance = balance - (bet as isize);
     println!("{:?}", bet);
     let bet: usize = 0;
     return (balance, bet);
@@ -41,5 +41,24 @@ fn gameLoop(){
         let bettingResults = betting(balance);
         balance = bettingResults.0;
         let mut bet: usize = bettingResults.1;
+
     }
 }
+
+/*fn add_signed(a: isize, b: usize) -> isize{
+    if b < 0 {
+        return a - (b.abs() as isize);
+    } else {
+        return a + (b.abs() as isize);
+    }
+}
+
+fn subtract_signed(a: isize, b: usize) -> isize{
+    if a > b as isize {
+        return a - b as isize;
+    } else if a < b as isize {
+        return b as isize - a;
+    } else {
+        return 0;
+    }
+}*/
