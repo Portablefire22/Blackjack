@@ -1,5 +1,8 @@
-use colored::Colorize;
+#![allow(non_snake_case)]
 
+use colored::Colorize;
+use rand::Rng;
+mod cards;
 fn main() {
     println!("{}", "Blackjack".bold().cyan());
     gameLoop();
@@ -37,14 +40,37 @@ fn betting(mut balance: isize) -> (isize, usize) {
 
 fn gameLoop(){
     let mut balance: isize = 100;
+    let cleanDeck = cards::build_deck();
     'Gameloop: loop{
         let bettingResults = betting(balance);
         balance = bettingResults.0;
         let mut bet: usize = bettingResults.1;
-
+        println!("{:#?}", shuffleDeck(cleanDeck.clone()));
+        println!("{}", cleanDeck.len());
     }
 }
 
+fn shuffleDeck(reference: Vec<cards::Card>) -> Vec<cards::Card>{
+    let mut shuffled = Vec::new();
+    let mut unshuffled = reference.clone();
+    loop {
+        let mut unshuffledLength = unshuffled.len();
+        let pos: usize;
+        if unshuffledLength != 1 {
+            pos = rand::thread_rng().gen_range(0..unshuffledLength);
+        } else {
+            pos = 0;
+        }
+        shuffled.push(unshuffled[pos].clone());
+        //println!("{:#?}", unshuffled[pos]);
+        unshuffled.remove(pos);
+        println!("{:#?}, {:#?}", unshuffled.len(),unshuffled);
+        if (unshuffled.len() <= 0) {
+            break
+        }
+    }
+    return shuffled
+}
 /*fn add_signed(a: isize, b: usize) -> isize{
     if b < 0 {
         return a - (b.abs() as isize);
@@ -52,7 +78,6 @@ fn gameLoop(){
         return a + (b.abs() as isize);
     }
 }
-
 fn subtract_signed(a: isize, b: usize) -> isize{
     if a > b as isize {
         return a - b as isize;
@@ -62,3 +87,5 @@ fn subtract_signed(a: isize, b: usize) -> isize{
         return 0;
     }
 }*/
+
+
