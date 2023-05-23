@@ -138,7 +138,33 @@ fn checkHand (dealerCards: Vec<cards::Card>, playerCards: Vec<cards::Card>) -> (
         isVictory = true;
         isPlayer = false;
         victoryType = "Natural";
+        // If the player also had a natural 21 then it's a tie, this is determined with 
+        // isVictory = false
+        // isPlayer = true;
+        // For quicker and easier checking.
+        if ((playerCards[0].value == 1.to_string() && playerCards[1].value == 10.to_string()) || (playerCards[0].value == 10.to_string() && playerCards[1].value == 1.to_string())){
+            isVictory = false;
+            isPlayer = true;
+            victoryType = "Natural Tie";
+        }
     }
+    // Best to check if it's a victory now,
+    if (!(isVictory || isPlayer)){
+        // Lets add the cards together.
+
+        // First the dealer 
+        let mut dealerTotal: u8 = 0;
+        let mut dealerAces: u8 = 0;
+        for card in dealerCards {
+            if (card.value != 1) {
+                dealerTotal = dealerTotal + card.value;
+            } else {
+                dealerAces = dealerAces + 1; // How do I best integrate this into the calculation.
+            }
+        }
+        
+    }
+
 
     return (isVictory, isPlayer, victoryType.to_string());
 }
