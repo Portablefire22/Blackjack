@@ -33,6 +33,6 @@ pub fn build_deck() -> Vec<Card>{
 
         }
     }
-return deck; // Return the deck for use in the card game.
-
+    return deck; // Return the deck for use in the card game.
+}
 

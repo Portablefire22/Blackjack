@@ -52,7 +52,6 @@ fn betting(mut balance: isize) -> (isize, usize) {
     
     balance = balance - (bet as isize); // Test deducation, remove this once gameplay is working.          
     
-    println!("{:?}", bet); // Output the placed bet. Don't think this does anything but debug.
     let bet: usize = 0; // Resets the bet. Idk why I set this. If the bet is going to be passed.
     return (balance, bet); 
 }
