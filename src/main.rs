@@ -73,7 +73,10 @@ fn gameLoop(){ // Main gameloop, this is where everything will be called from.
         let bettingResults = betting(balance); // Retrieves the results from betting.
         balance = bettingResults.0;
         let mut bet: usize = bettingResults.1;
-        
+
+        let dualDecks = dealInitialCards(shuffledDeck.clone());
+        let mut dealerCards = dualDecks.0;
+        let mut playerCards = dualDecks.1;
     }
 }
 
@@ -99,14 +102,47 @@ fn shuffleDeck(reference: Vec<cards::Card>) -> Vec<cards::Card>{ // Self-explana
             pos = 0;               // Else select the only card.
         }
         shuffled.push(unshuffled.remove(pos)); // This should remove the card from unshuffled and
-                                               // move it into the shuffled vector.
-        println!("{:#?}, {:#?}", shuffled.len(),shuffled); // Debug.
+                                               // move it into the shuffled vector
         if (unshuffled.len() <= 0) { // Stop the loop once the deck has been shuffled.
             break
         }
     }
     return shuffled
 }
+
+fn dealInitialCards(mut deck: Vec<cards::Card>) -> (Vec<cards::Card>, Vec<cards::Card>) {
+
+    // Realistically this would be done in a multi-stage process but I honestly don't care,
+    // due to how it was shuffled it shouldn't make a difference.
+
+    // First we shall deal the cards to the dealer.
+    let mut dealerCards = Vec::new(); // Vector chosen as more cards may be dealt later. 
+    dealerCards.push(deck.remove(0));
+    dealerCards.push(deck.remove(0)); // Remove the top card and place it into the dealers hand.
+
+    // Now we shall deal the cards to the player. 
+    let mut playerCards = Vec::new();
+    playerCards.push(deck.remove(0));
+    playerCards.push(deck.remove(0)); // Same as dealer
+    drop(deck);
+    return (dealerCards, playerCards);
+}
+
+fn checkHand (dealerCards: Vec<cards::Card>, playerCards: Vec<cards::Card>) -> (bool, bool, String) {
+    let mut isVictory = false;
+    let mut isPlayer = false;
+    let mut victoryType = "Null";
+
+    // First we check for a natural 21 for the dealer by checking their first hard.
+    if ((dealerCards[0].value == 1.to_string() && dealerCards[1].value == 10.to_string()) || ( dealerCards[0].value == 10.to_string() && dealerCards[1].value == 1.to_string())){
+        isVictory = true;
+        isPlayer = false;
+        victoryType = "Natural";
+    }
+
+    return (isVictory, isPlayer, victoryType.to_string());
+}
+
 /*fn add_signed(a: isize, b: usize) -> isize{
     if b < 0 {
         return a - (b.abs() as isize);
