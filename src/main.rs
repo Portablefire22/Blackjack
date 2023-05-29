@@ -77,6 +77,7 @@ fn gameLoop(){ // Main gameloop, this is where everything will be called from.
         let dualDecks = dealInitialCards(shuffledDeck.clone());
         let mut dealerCards = dualDecks.0;
         let mut playerCards = dualDecks.1;
+        checkHand(dealerCards, playerCards);
     }
 }
 
@@ -153,21 +154,35 @@ fn checkHand (dealerCards: Vec<cards::Card>, playerCards: Vec<cards::Card>) -> (
         // Lets add the cards together.
 
         // First the dealer 
-        let mut dealerTotal: u8 = 0;
-        let mut dealerAces: u8 = 0;
-        for card in dealerCards {
-            if (card.value != 1) {
-                dealerTotal = dealerTotal + card.value;
-            } else {
-                dealerAces = dealerAces + 1; // How do I best integrate this into the calculation.
-            }
-        }
-        
+        let dealerTotal: u8 = addCards(dealerCards);
+        let playerTotal: u8 = addCards(playerCards);
     }
 
 
     return (isVictory, isPlayer, victoryType.to_string());
 }
+
+
+// Add the cards to their highest collective value.
+fn addCards(deck: Vec<cards::Card>) -> u8 {
+    let mut deckTotal: u8 = 0;
+    let mut deckAces: u8 = 0;
+    for card in deck {
+       let cardValueInt: u8 = card.value.parse().unwrap(); 
+        if (cardValueInt != 1) {
+            deckTotal += cardValueInt;
+        } else {
+            deckAces += 1;
+        }
+    }
+    println!("{}", deckTotal);
+    for i in 0..deckAces {
+        deckTotal += 1;
+    }
+    println!("{}", deckTotal);
+    return deckTotal
+}
+
 
 /*fn add_signed(a: isize, b: usize) -> isize{
     if b < 0 {
