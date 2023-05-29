@@ -5,7 +5,19 @@ use rand::Rng;
 mod cards;
 fn main() {
     println!("{}", "Blackjack".bold().cyan());
-    gameLoop();
+    let mut game = gameState {
+        victoryType: "Null".to_string(),
+        balance: 100,
+        victor: "Null".to_string(),
+        bet: 0,
+    };
+    game = gameLoop(game);
+    println!("\n");
+    if (game.victor == "Dealer".to_string() || game.victor == "The House".to_string()) {
+        println!("{}","House always wins bby.".red().bold());
+    } else {
+        println!("{}","A winner is you!".green().bold());
+    }
 }
 /*
  *  This shit should have been commented a long time ago.
@@ -15,7 +27,15 @@ fn main() {
  *  Not too bothered by it since I should already have 65% on the module.
  */
 
-fn betting(mut balance: isize) -> (isize, usize) {
+pub struct gameState { 
+    pub victoryType: String,
+    pub balance: isize,
+    pub victor: String,
+    pub bet: usize,
+
+}
+
+fn betting(mut game: gameState) -> gameState {
     let mut bet = String::new();
     
     
@@ -27,7 +47,7 @@ fn betting(mut balance: isize) -> (isize, usize) {
     while String::from(&bet).len() <= 1 { 
         bet = String::from("");
         println!("Balance: {}{}", "£".green().bold(),
-            balance.to_string().green().bold()); // Displays the user's current balance.
+            game.balance.to_string().green().bold()); // Displays the user's current balance.
         println!("Make your bet!:");
 
         std::io::stdin()
@@ -43,22 +63,23 @@ fn betting(mut balance: isize) -> (isize, usize) {
 
            //.expect("{} {}",String::from(bet).red().bold(), "is not a valid number!".red().bold());
     }
-    let bet: usize = match bet 
+    game.bet = match bet 
         .trim()
         .parse::<usize>(){
             Ok(num) => num,
             Err(_) => unreachable!(),
-        }; // This for some reason does what should be happening in the while loop?
-    
-    balance = balance - (bet as isize); // Test deducation, remove this once gameplay is working.          
-    
-    let bet: usize = 0; // Resets the bet. Idk why I set this. If the bet is going to be passed.
-    return (balance, bet); 
+        }; // This for some reason does what should be happening in the while loop? 
+    game.balance = (game.balance - (game.bet as isize));
+    return game; 
 }
 
-fn gameLoop(){ // Main gameloop, this is where everything will be called from.
-    let mut balance: isize = 100; // Initial starting balance.                              
-
+fn gameLoop(mut game: gameState) -> gameState{ // Main gameloop, this is where everything will be called from.
+    let mut game = gameState {
+        victoryType: "Null".to_string(),
+        balance: 100,
+        victor: "Null".to_string(),
+        bet: 0,
+    };
     /*
      *  The building of a clean deck for the start of the game is currently unneeded, whilst the
      *  resources used to generate the deck are insignificant it could be reduced by first time
@@ -69,16 +90,20 @@ fn gameLoop(){ // Main gameloop, this is where everything will be called from.
      */
     let cleanDeck = cards::build_deck(); // Builds a clean, unshuffled deck. 
     let shuffledDeck = shuffleDeck(cleanDeck);
+    let mut natCheck: bool = true;
     'Gameloop: loop{
-        let bettingResults = betting(balance); // Retrieves the results from betting.
-        balance = bettingResults.0;
-        let mut bet: usize = bettingResults.1;
+        game = betting(game); // Retrieves the results from betting
 
         let dualDecks = dealInitialCards(shuffledDeck.clone());
         let mut dealerCards = dualDecks.0;
         let mut playerCards = dualDecks.1;
-        checkHand(dealerCards, playerCards);
+        game = checkHand(dealerCards, playerCards, natCheck, game);
+        let bankruptcyResults = checkBankruptcy(game);
+        game = bankruptcyResults.0;
+        if (bankruptcyResults.1) { break 'Gameloop; }
+        if (natCheck) { natCheck = !natCheck; }
     }
+    return game 
 }
 
 fn shuffleDeck(reference: Vec<cards::Card>) -> Vec<cards::Card>{ // Self-explanatory
@@ -129,37 +154,49 @@ fn dealInitialCards(mut deck: Vec<cards::Card>) -> (Vec<cards::Card>, Vec<cards:
     return (dealerCards, playerCards);
 }
 
-fn checkHand (dealerCards: Vec<cards::Card>, playerCards: Vec<cards::Card>) -> (bool, bool, String) {
-    let mut isVictory = false;
-    let mut isPlayer = false;
-    let mut victoryType = "Null";
-
-    // First we check for a natural 21 for the dealer by checking their first hard.
-    if ((dealerCards[0].value == 1.to_string() && dealerCards[1].value == 10.to_string()) || ( dealerCards[0].value == 10.to_string() && dealerCards[1].value == 1.to_string())){
-        isVictory = true;
-        isPlayer = false;
-        victoryType = "Natural";
-        // If the player also had a natural 21 then it's a tie, this is determined with 
-        // isVictory = false
-        // isPlayer = true;
-        // For quicker and easier checking.
-        if ((playerCards[0].value == 1.to_string() && playerCards[1].value == 10.to_string()) || (playerCards[0].value == 10.to_string() && playerCards[1].value == 1.to_string())){
-            isVictory = false;
-            isPlayer = true;
-            victoryType = "Natural Tie";
+fn checkHand (dealerCards: Vec<cards::Card>, playerCards: Vec<cards::Card>, natCheck: bool, mut game: gameState) -> gameState {    
+    if (natCheck) {
+        let dealerNat = naturalCheck(dealerCards.clone());
+        let playerNat = naturalCheck(playerCards.clone());
+        
+        if (dealerNat & playerNat) {
+            game.victoryType = "Tie".to_string();
+        }
+        else if (dealerNat) {
+            game.victor = "Dealer".to_string();
+            game.victoryType = "Natural".to_string();
+        } else if (playerNat) {
+            game.victor = "Player".to_string();
+            game.victoryType = "Natural".to_string();
         }
     }
-    // Best to check if it's a victory now,
-    if (!(isVictory || isPlayer)){
-        // Lets add the cards together.
 
-        // First the dealer 
-        let dealerTotal: u8 = addCards(dealerCards);
-        let playerTotal: u8 = addCards(playerCards);
+    // Best to check if it's a victory now,
+    if (game.victoryType == "Null".to_string()){
+        // Lets add the cards together.
+        let dealerTotal: u8 = addCards(dealerCards.clone());
+        let playerTotal: u8 = addCards(playerCards.clone());
     }
 
 
-    return (isVictory, isPlayer, victoryType.to_string());
+    return game;
+}
+
+fn checkBankruptcy(mut game: gameState) -> (gameState,bool) {
+    if (game.victor.clone() != "Player".to_string() && game.balance.clone() < 0){
+        game.victor = "The House".to_string();
+        game.victoryType = "Bankruptcy".to_string();
+        return (game,true)
+    }
+    return (game,false)
+}
+
+fn naturalCheck(deck: Vec<cards::Card>) -> bool {
+    // First we check for a natural 20 for the dealer by checking their first hard.
+    if (addCards(deck) == 21){
+        return true
+    }
+    return false
 }
 
 
@@ -175,11 +212,15 @@ fn addCards(deck: Vec<cards::Card>) -> u8 {
             deckAces += 1;
         }
     }
-    println!("{}", deckTotal);
+    println!("Before Adding Aces {}", deckTotal);
     for i in 0..deckAces {
-        deckTotal += 1;
+        if (deckTotal <= 10) {
+            deckTotal += 11;
+        } else {
+            deckTotal += 1;
+        }
     }
-    println!("{}", deckTotal);
+    println!("After Adding Aces {}", deckTotal);
     return deckTotal
 }
 
