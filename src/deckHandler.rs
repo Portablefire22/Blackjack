@@ -15,6 +15,7 @@ pub struct Deck {
 
 impl Deck {
    pub fn addCards(&mut self) -> u8 {
+        self.value = 0; // This sets reference decks to 0 and prevents accidental doubling.
         if (self.holder != "REFERENCE") { // Reference decks contain every card, leading to
                                           // an overflow, so lets just stop that.
             let mut acesTotal: u8 = 0;
@@ -33,10 +34,8 @@ impl Deck {
                     self.value += 1
                 }
             }
-            return self.value
-        } else {
-            return 0 // Reference decks are not in use and thus are a value of 0. 
         }
+        return self.value 
     } 
 
     pub fn createDeck(mut cardsDeck: Vec<crate::cards::Card>, holderTemp: String) -> Deck {

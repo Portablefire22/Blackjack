@@ -4,14 +4,14 @@ use colored::Colorize;
 use rand::Rng;
 mod cards;
 mod deckHandler;
+mod gameHandler;
+
 fn main() {
     println!("{}", "Blackjack".bold().cyan());
-    let mut game = gameState {
-        victoryType: "Null".to_string(),
-        balance: 100,
-        victor: "Null".to_string(),
-        bet: 0,
-    };
+    let mut game: gameHandler::GameState = gameHandler::GameState::default();
+    game.setMultiplier(1);
+    game.incrementBalance(100);
+    game.setMultiplier(2);
     game = gameLoop(game);
     println!("\n");
     if (game.victor == "Dealer".to_string() || game.victor == "The House".to_string()) {
@@ -28,15 +28,9 @@ fn main() {
  *  Not too bothered by it since I should already have 65% on the module.
  */
 
-pub struct gameState { 
-    pub victoryType: String,
-    pub balance: isize,
-    pub victor: String,
-    pub bet: usize,
 
-}
 
-fn betting(mut game: gameState) -> gameState {
+fn betting(mut game: gameHandler::GameState) -> gameHandler::GameState {
     let mut bet = String::new();
     
     
@@ -48,7 +42,7 @@ fn betting(mut game: gameState) -> gameState {
     while String::from(&bet).len() <= 1 { 
         bet = String::from("");
         println!("Balance: {}{}", "£".green().bold(),
-            game.balance.to_string().green().bold()); // Displays the user's current balance.
+        game.balance.to_string().green().bold()); // Displays the user's current balance.
         println!("Make your bet!:");
 
         std::io::stdin()
@@ -64,23 +58,16 @@ fn betting(mut game: gameState) -> gameState {
 
            //.expect("{} {}",String::from(bet).red().bold(), "is not a valid number!".red().bold());
     }
-    game.bet = match bet 
+    game.setBet(match bet 
         .trim()
         .parse::<usize>(){
             Ok(num) => num,
             Err(_) => unreachable!(),
-        }; // This for some reason does what should be happening in the while loop? 
-    game.balance = (game.balance - (game.bet as isize));
-    return game; 
+        }); // This for some reason does what should be happening in the while loop? 
+    return game
 }
 
-fn gameLoop(mut game: gameState) -> gameState{ // Main gameloop, this is where everything will be called from.
-    let mut game = gameState {
-        victoryType: "Null".to_string(),
-        balance: 100,
-        victor: "Null".to_string(),
-        bet: 0,
-    };
+fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main gameloop, this is where everything will be called from. 
     /*
      *  The building of a clean deck for the start of the game is currently unneeded, whilst the
      *  resources used to generate the deck are insignificant it could be reduced by first time
@@ -98,9 +85,7 @@ fn gameLoop(mut game: gameState) -> gameState{ // Main gameloop, this is where e
         let mut dealerCards: deckHandler::Deck = deckHandler::Deck::createDeck(dualDecks.0, "Dealer".to_string());
         let mut playerCards: deckHandler::Deck = deckHandler::Deck::createDeck(dualDecks.1, "Player".to_string());
         game = checkHand(dealerCards, playerCards, natCheck, game);
-        let bankruptcyResults = checkBankruptcy(game);
-        game = bankruptcyResults.0;
-        if (bankruptcyResults.1) { break 'Gameloop; }
+        if (game.checkBankruptcy()) { break 'Gameloop; }
         if (natCheck) { natCheck = !natCheck; }
     }
     return game 
@@ -124,20 +109,18 @@ fn dealInitialCards(mut deck: deckHandler::Deck) -> (Vec<cards::Card>, Vec<cards
     return (dealerCards, playerCards);
 }
 
-fn checkHand (dealerCards: deckHandler::Deck, playerCards: deckHandler::Deck, natCheck: bool, mut game: gameState) -> gameState {    
+fn checkHand (mut dealerCards: deckHandler::Deck, mut playerCards: deckHandler::Deck, natCheck: bool, mut game: gameHandler::GameState) -> gameHandler::GameState {    
     if (natCheck) {
         let dealerNat = naturalCheck(dealerCards.Clone());
         let playerNat = naturalCheck(playerCards.Clone());
         
         if (dealerNat & playerNat) {
-            game.victoryType = "Tie".to_string();
+            game.setVictory("Tie".to_string(),"NULL".to_string());
         }
         else if (dealerNat) {
-            game.victor = "Dealer".to_string();
-            game.victoryType = "Natural".to_string();
+            game.setVictory("Natural".to_string(), "Dealer".to_string());
         } else if (playerNat) {
-            game.victor = "Player".to_string();
-            game.victoryType = "Natural".to_string();
+            game.setVictory("Natural".to_string(),"Player".to_string());
         }
     }
 
@@ -146,20 +129,16 @@ fn checkHand (dealerCards: deckHandler::Deck, playerCards: deckHandler::Deck, na
         // Lets add the cards together.
         //let dealerTotal: u8 = addCards(dealerCards.clone());
         //let playerTotal: u8 = addCards(playerCards.clone());
-        
+       
+
+        // First we check to see if the player has went bust 
+       if (playerCards.addCards() > 21) {
+            game.setVictory("Bust".to_string(),"Dealer".to_string());
+        } else if (dealerCards.addCards() > 21 ) {// Then we check the dealer if the player isn't bust
+            game.setVictory("Bust".to_string(),"Player".to_string());
+        }
     }
-
-
     return game;
-}
-
-fn checkBankruptcy(mut game: gameState) -> (gameState,bool) {
-    if (game.victor.clone() != "Player".to_string() && game.balance.clone() < 0){
-        game.victor = "The House".to_string();
-        game.victoryType = "Bankruptcy".to_string();
-        return (game,true)
-    }
-    return (game,false)
 }
 
 fn naturalCheck(mut deck: deckHandler::Deck) -> bool {
@@ -169,24 +148,5 @@ fn naturalCheck(mut deck: deckHandler::Deck) -> bool {
     }
     return false
 }
-
-
-
-/*fn add_signed(a: isize, b: usize) -> isize{
-    if b < 0 {
-        return a - (b.abs() as isize);
-    } else {
-        return a + (b.abs() as isize);
-    }
-}
-fn subtract_signed(a: isize, b: usize) -> isize{
-    if a > b as isize {
-        return a - b as isize;
-    } else if a < b as isize {
-        return b as isize - a;
-    } else {
-        return 0;
-    }
-}*/
 
 
