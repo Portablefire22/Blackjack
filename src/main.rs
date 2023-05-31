@@ -126,19 +126,24 @@ fn checkHand (mut dealerCards: deckHandler::Deck, mut playerCards: deckHandler::
 
     // Best to check if it's a victory now,
     if (game.victoryType == "Null".to_string()){
-        // Lets add the cards together.
-        //let dealerTotal: u8 = addCards(dealerCards.clone());
-        //let playerTotal: u8 = addCards(playerCards.clone());
-       
-
         // First we check to see if the player has went bust 
        if (playerCards.addCards() > 21) {
             game.setVictory("Bust".to_string(),"Dealer".to_string());
+            return game
         } else if (dealerCards.addCards() > 21 ) {// Then we check the dealer if the player isn't bust
             game.setVictory("Bust".to_string(),"Player".to_string());
+            return game
+        }
+
+       if (!playerCards.inPlay && playerCards.value < dealerCards.value) {
+            game.setVictory("Normal".to_string(), "Dealer".to_string());
+            return game
+        } else if (!dealerCards.inPlay && dealerCards.value < playerCards.value) {
+            game.setVictory("Normal".to_string(), "Player".to_string());
+            return game
         }
     }
-    return game;
+    return game
 }
 
 fn naturalCheck(mut deck: deckHandler::Deck) -> bool {

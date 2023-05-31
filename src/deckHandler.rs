@@ -9,6 +9,7 @@ pub struct Deck {
     pub cards: Vec<crate::cards::Card>,
     pub holder: String,
     pub value: u8,
+    pub inPlay: bool,
 }
 
 
@@ -19,10 +20,9 @@ impl Deck {
         if (self.holder != "REFERENCE") { // Reference decks contain every card, leading to
                                           // an overflow, so lets just stop that.
             let mut acesTotal: u8 = 0;
-            for card in self.cards.clone() { // Iterate through all cards in deck.
-                let cardValueInt: u8 = card.value.parse().unwrap(); // Convert to u8.
-                if (cardValueInt != 1) { // Add value to total if not ace.
-                    self.value += cardValueInt;
+            for card in self.cards.clone() { // Iterate through all cards in deck. 
+                if (card.value != 1) { // Add value to total if not ace.
+                    self.value += card.value;
                 } else { // Increment aces.
                     acesTotal += 1;
                 }
@@ -44,6 +44,7 @@ impl Deck {
             cards: cardsDeck,
             holder: holderTemp,
             value: 0,
+            inPlay: true,
         };
         temp.value = temp.Clone().addCards(); // Calculate the total value of the deck. 
         return temp // Return the new deck.
@@ -54,6 +55,7 @@ impl Deck {
             cards: self.cards.clone(),
             holder: self.holder.clone(),
             value: self.value.clone(),
+            inPlay: self.inPlay.clone(),
         }
     }
 
@@ -95,6 +97,7 @@ impl Default for Deck { // Default values of empty deck.
             cards: Vec::new(),
             holder: "NULL".to_string(),
             value: 0,
+            inPlay: false,
         }
     }
 }
