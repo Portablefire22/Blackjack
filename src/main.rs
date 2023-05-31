@@ -3,6 +3,7 @@
 use colored::Colorize;
 use rand::Rng;
 mod cards;
+mod deckHandler;
 fn main() {
     println!("{}", "Blackjack".bold().cyan());
     let mut game = gameState {
@@ -88,15 +89,14 @@ fn gameLoop(mut game: gameState) -> gameState{ // Main gameloop, this is where e
      *  so that it could be further expanded to allow for things such as multiple decks to be used
      *  in a game.
      */
-    let cleanDeck = cards::build_deck(); // Builds a clean, unshuffled deck. 
-    let shuffledDeck = shuffleDeck(cleanDeck);
+    let mut cleanDeck = deckHandler::Deck::createDeck(cards::build_deck(), "REFERENCE".to_string());
+    let shuffledDeck = cleanDeck.shuffle();
     let mut natCheck: bool = true;
     'Gameloop: loop{
         game = betting(game); // Retrieves the results from betting
-
-        let dualDecks = dealInitialCards(shuffledDeck.clone());
-        let mut dealerCards = dualDecks.0;
-        let mut playerCards = dualDecks.1;
+        let dualDecks = dealInitialCards(shuffledDeck.Clone());
+        let mut dealerCards: deckHandler::Deck = deckHandler::Deck::createDeck(dualDecks.0, "Dealer".to_string());
+        let mut playerCards: deckHandler::Deck = deckHandler::Deck::createDeck(dualDecks.1, "Player".to_string());
         game = checkHand(dealerCards, playerCards, natCheck, game);
         let bankruptcyResults = checkBankruptcy(game);
         game = bankruptcyResults.0;
@@ -106,58 +106,28 @@ fn gameLoop(mut game: gameState) -> gameState{ // Main gameloop, this is where e
     return game 
 }
 
-fn shuffleDeck(reference: Vec<cards::Card>) -> Vec<cards::Card>{ // Self-explanatory
-   /*
-    *  For ease of use down the line the generated deck is not directly modified, instead the deck
-    *  is cloned (in this case it is cloned into 'unshuffled') and the clone is manipulated
-    *  instead. This was done just to prevent having to run the card builder multiple times per
-    *  game. 
-    *  Insignificant in something like this, but I feel like it's a good habit to learn to lower
-    *  processing time on shit hardware, even if it increases the RAM usage.
-    */
-    let mut shuffled = Vec::new();
-    let mut unshuffled = reference.clone();
-    loop {
-        let mut unshuffledLength = unshuffled.len(); // Use this to make sure the deck contains
-                                                     // cards.
-        let pos: usize;
-        if unshuffledLength != 1 { // If the deck contains more than one card then randomly select
-                                   // a vector position within the deck.
-            pos = rand::thread_rng().gen_range(0..unshuffledLength);
-        } else {
-            pos = 0;               // Else select the only card.
-        }
-        shuffled.push(unshuffled.remove(pos)); // This should remove the card from unshuffled and
-                                               // move it into the shuffled vector
-        if (unshuffled.len() <= 0) { // Stop the loop once the deck has been shuffled.
-            break
-        }
-    }
-    return shuffled
-}
-
-fn dealInitialCards(mut deck: Vec<cards::Card>) -> (Vec<cards::Card>, Vec<cards::Card>) {
+fn dealInitialCards(mut deck: deckHandler::Deck) -> (Vec<cards::Card>, Vec<cards::Card>) {
 
     // Realistically this would be done in a multi-stage process but I honestly don't care,
     // due to how it was shuffled it shouldn't make a difference.
 
     // First we shall deal the cards to the dealer.
     let mut dealerCards = Vec::new(); // Vector chosen as more cards may be dealt later. 
-    dealerCards.push(deck.remove(0));
-    dealerCards.push(deck.remove(0)); // Remove the top card and place it into the dealers hand.
+    dealerCards.push(deck.cards.remove(0));
+    dealerCards.push(deck.cards.remove(0)); // Remove the top card and place it into the dealers hand.
 
     // Now we shall deal the cards to the player. 
     let mut playerCards = Vec::new();
-    playerCards.push(deck.remove(0));
-    playerCards.push(deck.remove(0)); // Same as dealer
+    playerCards.push(deck.cards.remove(0));
+    playerCards.push(deck.cards.remove(0)); // Same as dealer
     drop(deck);
     return (dealerCards, playerCards);
 }
 
-fn checkHand (dealerCards: Vec<cards::Card>, playerCards: Vec<cards::Card>, natCheck: bool, mut game: gameState) -> gameState {    
+fn checkHand (dealerCards: deckHandler::Deck, playerCards: deckHandler::Deck, natCheck: bool, mut game: gameState) -> gameState {    
     if (natCheck) {
-        let dealerNat = naturalCheck(dealerCards.clone());
-        let playerNat = naturalCheck(playerCards.clone());
+        let dealerNat = naturalCheck(dealerCards.Clone());
+        let playerNat = naturalCheck(playerCards.Clone());
         
         if (dealerNat & playerNat) {
             game.victoryType = "Tie".to_string();
@@ -174,8 +144,9 @@ fn checkHand (dealerCards: Vec<cards::Card>, playerCards: Vec<cards::Card>, natC
     // Best to check if it's a victory now,
     if (game.victoryType == "Null".to_string()){
         // Lets add the cards together.
-        let dealerTotal: u8 = addCards(dealerCards.clone());
-        let playerTotal: u8 = addCards(playerCards.clone());
+        //let dealerTotal: u8 = addCards(dealerCards.clone());
+        //let playerTotal: u8 = addCards(playerCards.clone());
+        
     }
 
 
@@ -191,38 +162,14 @@ fn checkBankruptcy(mut game: gameState) -> (gameState,bool) {
     return (game,false)
 }
 
-fn naturalCheck(deck: Vec<cards::Card>) -> bool {
+fn naturalCheck(mut deck: deckHandler::Deck) -> bool {
     // First we check for a natural 20 for the dealer by checking their first hard.
-    if (addCards(deck) == 21){
+    if (deck.addCards() == 21){
         return true
     }
     return false
 }
 
-
-// Add the cards to their highest collective value.
-fn addCards(deck: Vec<cards::Card>) -> u8 {
-    let mut deckTotal: u8 = 0;
-    let mut deckAces: u8 = 0;
-    for card in deck {
-       let cardValueInt: u8 = card.value.parse().unwrap(); 
-        if (cardValueInt != 1) {
-            deckTotal += cardValueInt;
-        } else {
-            deckAces += 1;
-        }
-    }
-    println!("Before Adding Aces {}", deckTotal);
-    for i in 0..deckAces {
-        if (deckTotal <= 10) {
-            deckTotal += 11;
-        } else {
-            deckTotal += 1;
-        }
-    }
-    println!("After Adding Aces {}", deckTotal);
-    return deckTotal
-}
 
 
 /*fn add_signed(a: isize, b: usize) -> isize{

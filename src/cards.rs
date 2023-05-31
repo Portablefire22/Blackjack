@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 #[derive(Debug, Clone)] // Required to allow for the values to be cloned, and then displayed to
                         // the screen with debug tools.
 
