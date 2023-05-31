@@ -19,6 +19,8 @@ fn build_card(cardSuit: String, cardValue: String, cardName: String) -> Card {
     return card1;
 }
 
+// This probably should be in the deckHandler module, but will remain here for now since it deals
+// with the creation of the cards. 
 pub fn build_deck() -> Vec<Card>{
     let mut deck = Vec::new();
     let suites: [&str; 4] = ["Hearts","Diamonds","Spades","Clubs"]; // Allocates the suites

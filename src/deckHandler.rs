@@ -15,41 +15,42 @@ pub struct Deck {
 
 impl Deck {
    pub fn addCards(&mut self) -> u8 {
-        if (self.holder != "REFERENCE") {
+        if (self.holder != "REFERENCE") { // Reference decks contain every card, leading to
+                                          // an overflow, so lets just stop that.
             let mut acesTotal: u8 = 0;
-            for card in self.cards.clone() {
-                let cardValueInt: u8 = card.value.parse().unwrap();
-                if (cardValueInt != 1) {
+            for card in self.cards.clone() { // Iterate through all cards in deck.
+                let cardValueInt: u8 = card.value.parse().unwrap(); // Convert to u8.
+                if (cardValueInt != 1) { // Add value to total if not ace.
                     self.value += cardValueInt;
-                } else {
+                } else { // Increment aces.
                     acesTotal += 1;
                 }
             }
             for i in 0..acesTotal {
-                if (self.value <= 10) {
+                if (self.value <= 10) { // If the ace will not exceed 21, add 11 to the deck total.
                     self.value += 11
-                } else {
+                } else { // Else add 1.
                     self.value += 1
                 }
             }
             return self.value
         } else {
-            return 0 
+            return 0 // Reference decks are not in use and thus are a value of 0. 
         }
     } 
 
     pub fn createDeck(mut cardsDeck: Vec<crate::cards::Card>, holderTemp: String) -> Deck {
         
-        let mut temp = Deck {
+        let mut temp = Deck { // Create the deck with an empty value.
             cards: cardsDeck,
             holder: holderTemp,
             value: 0,
         };
-        temp.value = temp.Clone().addCards();
-        return temp
+        temp.value = temp.Clone().addCards(); // Calculate the total value of the deck. 
+        return temp // Return the new deck.
     }
 
-    pub fn Clone(&self) -> Deck {
+    pub fn Clone(&self) -> Deck { 
         Deck {
             cards: self.cards.clone(),
             holder: self.holder.clone(),
@@ -89,7 +90,7 @@ impl Deck {
     }
 }
 
-impl Default for Deck {
+impl Default for Deck { // Default values of empty deck. 
     fn default() -> Deck {
         Deck {
             cards: Vec::new(),
