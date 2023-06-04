@@ -38,8 +38,7 @@ impl Deck {
         return self.value 
     } 
 
-    pub fn createDeck(mut cardsDeck: Vec<crate::cards::Card>, holderTemp: String) -> Deck {
-        
+    pub fn createDeck(mut cardsDeck: Vec<crate::cards::Card>, holderTemp: String) -> Deck { 
         let mut temp = Deck { // Create the deck with an empty value.
             cards: cardsDeck,
             holder: holderTemp,

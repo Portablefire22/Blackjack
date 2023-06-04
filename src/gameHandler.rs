@@ -32,12 +32,12 @@ impl GameState {
     }
 
     pub fn checkBankruptcy(&mut self) -> bool {
-    if (self.victor != "Player".to_string() && self.balance < 0){
-        self.setVictory("Bankruptcy".to_string(),"The House".to_string());
-        return true
+        if (self.victor != "Player".to_string() && self.balance < 0){
+            self.setVictory("Bankruptcy".to_string(),"The House".to_string());
+            return true
+        }
+        return false
     }
-    return false
-}
 }
 
 
