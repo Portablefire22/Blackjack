@@ -17,11 +17,29 @@
 *
 */
 
-pub struct characterState {
-    pub deck: Vec<crate::cards::Card>,
+pub struct CharacterState {
+    pub deck: crate::deckHandler::Deck,
     pub controlled: bool,
 }
 
-fn () -> {
 
+impl CharacterState {
+    pub fn drawCards(&mut self, mut freshDeck: crate::deckHandler::Deck, quantity: u8) {
+        for i in 0..quantity {
+            self.deck.addCard(freshDeck.cards.remove(0));
+        }
+    }
+    pub fn decideMove(&mut self) {
+        
+    }
 }
+
+impl Default for CharacterState {
+    fn default() -> CharacterState {
+        CharacterState { 
+            deck: crate::deckHandler::Deck::default(),
+            controlled: false,
+        }
+    }
+}
+

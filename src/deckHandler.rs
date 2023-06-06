@@ -15,7 +15,13 @@ pub struct Deck {
 
 
 impl Deck {
-   pub fn addCards(&mut self) -> u8 {
+
+    pub fn addCard(&mut self, card: crate::cards::Card) {
+        self.cards.push(card);
+        self.calculateValue();
+    }
+
+    pub fn calculateValue(&mut self) -> u8 {
         self.value = 0; // This sets reference decks to 0 and prevents accidental doubling.
         if (self.holder != "REFERENCE") { // Reference decks contain every card, leading to
                                           // an overflow, so lets just stop that.
@@ -45,7 +51,7 @@ impl Deck {
             value: 0,
             inPlay: true,
         };
-        temp.value = temp.Clone().addCards(); // Calculate the total value of the deck. 
+        temp.value = temp.Clone().calculateValue(); // Calculate the total value of the deck. 
         return temp // Return the new deck.
     }
 

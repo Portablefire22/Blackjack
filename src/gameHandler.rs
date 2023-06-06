@@ -6,6 +6,8 @@ pub struct GameState {
     pub victor: String,
     pub bet: usize,
     pub multipler: u8,
+    pub player: crate::characterController::CharacterState,
+    pub dealer: crate::characterController::CharacterState,
 
 }
 
@@ -49,6 +51,8 @@ impl Default for GameState {
             victor: "NULL".to_string(),
             bet: 0,
             multipler: 0,
+            player: crate::characterController::CharacterState::default(),
+            dealer: crate::characterController::CharacterState::default(),
         }
     }
 }

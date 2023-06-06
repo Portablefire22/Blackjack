@@ -5,6 +5,7 @@ use rand::Rng;
 mod cards;
 mod deckHandler;
 mod gameHandler;
+mod characterController;
 
 fn main() {
     println!("{}", "Blackjack".bold().cyan());
@@ -12,6 +13,8 @@ fn main() {
     game.setMultiplier(1);
     game.incrementBalance(100);
     game.setMultiplier(2);
+    game.dealer = characterController::CharacterState { deck: deckHandler::Deck::createDeck(Vec::new(), "Player".to_string()), controlled: true, };
+    game.dealer = characterController::CharacterState { deck: deckHandler::Deck::createDeck(Vec::new(), "Dealer".to_string()), controlled: false, };
     game = gameLoop(game);
     println!("\n");
     if (game.victor == "Dealer".to_string() || game.victor == "The House".to_string()) {
@@ -67,24 +70,17 @@ fn betting(mut game: gameHandler::GameState) -> gameHandler::GameState {
     return game
 }
 
-fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main gameloop, this is where everything will be called from. 
-    /*
-     *  The building of a clean deck for the start of the game is currently unneeded, whilst the
-     *  resources used to generate the deck are insignificant it could be reduced by first time
-     *  generating a desk and just saving it into a txt file.
-     *  The generation function was more so made so that I didn't have to make a deck myself, and
-     *  so that it could be further expanded to allow for things such as multiple decks to be used
-     *  in a game.
-     */
+fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main gameloop, this is where everything will be called from.
+
     let mut cleanDeck = deckHandler::Deck::createDeck(cards::build_deck(), "REFERENCE".to_string());
     let shuffledDeck = cleanDeck.shuffle();
     let mut natCheck: bool = true;
     'Gameloop: loop{
         game = betting(game); // Retrieves the results from betting
         let dualDecks = dealInitialCards(shuffledDeck.Clone());
-        let mut dealerCards: deckHandler::Deck = deckHandler::Deck::createDeck(dualDecks.0, "Dealer".to_string());
-        let mut playerCards: deckHandler::Deck = deckHandler::Deck::createDeck(dualDecks.1, "Player".to_string());
-        game = checkHand(dealerCards, playerCards, natCheck, game);
+        game.player.deck.cards = dualDecks.0;
+        game.dealer.deck.cards = dualDecks.1;
+        game = checkHand(natCheck, game);
         if (game.checkBankruptcy()) { break 'Gameloop; }
         if (natCheck) { natCheck = !natCheck; }
     }
@@ -93,15 +89,11 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
 
 fn dealInitialCards(mut deck: deckHandler::Deck) -> (Vec<cards::Card>, Vec<cards::Card>) {
 
-    // Realistically this would be done in a multi-stage process but I honestly don't care,
-    // due to how it was shuffled it shouldn't make a difference.
 
-    // First we shall deal the cards to the dealer.
     let mut dealerCards = Vec::new(); // Vector chosen as more cards may be dealt later. 
     dealerCards.push(deck.cards.remove(0));
     dealerCards.push(deck.cards.remove(0)); // Remove the top card and place it into the dealers hand.
 
-    // Now we shall deal the cards to the player. 
     let mut playerCards = Vec::new();
     playerCards.push(deck.cards.remove(0));
     playerCards.push(deck.cards.remove(0)); // Same as dealer
@@ -109,10 +101,10 @@ fn dealInitialCards(mut deck: deckHandler::Deck) -> (Vec<cards::Card>, Vec<cards
     return (dealerCards, playerCards);
 }
 
-fn checkHand (mut dealerCards: deckHandler::Deck, mut playerCards: deckHandler::Deck, natCheck: bool, mut game: gameHandler::GameState) -> gameHandler::GameState {    
+fn checkHand (natCheck: bool, mut game: gameHandler::GameState) -> gameHandler::GameState {    
     if (natCheck) {
-        let dealerNat = naturalCheck(dealerCards.Clone());
-        let playerNat = naturalCheck(playerCards.Clone());
+        let dealerNat = naturalCheck(game.dealer.deck.Clone());
+        let playerNat = naturalCheck(game.player.deck.Clone());
         
         if (dealerNat & playerNat) {
             game.setVictory("Tie".to_string(),"NULL".to_string());
@@ -127,18 +119,18 @@ fn checkHand (mut dealerCards: deckHandler::Deck, mut playerCards: deckHandler::
     // Best to check if it's a victory now,
     if (game.victoryType == "Null".to_string()){
         // First we check to see if the player has went bust 
-       if (playerCards.addCards() > 21) {
+       if(game.player.deck.calculateValue() > 21) {
             game.setVictory("Bust".to_string(),"Dealer".to_string());
             return game
-        } else if (dealerCards.addCards() > 21 ) {// Then we check the dealer if the player isn't bust
+        } else if (game.dealer.deck.calculateValue() > 21 ) {// Then we check the dealer if the player isn't bust
             game.setVictory("Bust".to_string(),"Player".to_string());
             return game
         }
 
-       if (!playerCards.inPlay && playerCards.value < dealerCards.value) {
+       if (!game.player.deck.inPlay && game.player.deck.value < game.dealer.deck.value) {
             game.setVictory("Normal".to_string(), "Dealer".to_string());
             return game
-        } else if (!dealerCards.inPlay && dealerCards.value < playerCards.value) {
+        } else if (!game.dealer.deck.inPlay && game.dealer.deck.value < game.player.deck.value) {
             game.setVictory("Normal".to_string(), "Player".to_string());
             return game
         }
@@ -148,7 +140,7 @@ fn checkHand (mut dealerCards: deckHandler::Deck, mut playerCards: deckHandler::
 
 fn naturalCheck(mut deck: deckHandler::Deck) -> bool {
     // First we check for a natural 20 for the dealer by checking their first hard.
-    if (deck.addCards() == 21){
+    if (deck.calculateValue() == 21){
         return true
     }
     return false
