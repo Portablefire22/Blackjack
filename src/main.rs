@@ -23,26 +23,10 @@ fn main() {
         println!("{}","A winner is you!".green().bold());
     }
 }
-/*
- *  This shit should have been commented a long time ago.
- *  Guess I should be doing it right now before starting any more.
- *  Also I have like 4 hours until my maths exam so that is cool.
- *  I'll be quickly revising for it at 6 am I imagine. 
- *  Not too bothered by it since I should already have 65% on the module.
- */
-
-
 
 fn betting(mut game: gameHandler::GameState) -> gameHandler::GameState {
     let mut bet = String::new();
-    
-    
-    /*
-     *  This section deals with the reading of a bet.
-     *  Currently also handles the deducation of balance but that'll likely
-     *  be shifted to a different function.
-     */
-    while String::from(&bet).len() <= 1 { 
+     while String::from(&bet).len() <= 1 { 
         bet = String::from("");
         println!("Balance: {}{}", "£".green().bold(),
         game.balance.to_string().green().bold()); // Displays the user's current balance.
@@ -66,7 +50,7 @@ fn betting(mut game: gameHandler::GameState) -> gameHandler::GameState {
         .parse::<usize>(){
             Ok(num) => num,
             Err(_) => unreachable!(),
-        }); // This for some reason does what should be happening in the while loop? 
+        }); // Patch fix for not being in scope. :)
     return game
 }
 
@@ -85,3 +69,4 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
     }
     return game 
 }
+
