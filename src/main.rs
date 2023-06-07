@@ -73,13 +73,14 @@ fn betting(mut game: gameHandler::GameState) -> gameHandler::GameState {
 fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main gameloop, this is where everything will be called from.
 
     let mut cleanDeck = deckHandler::Deck::createDeck(cards::build_deck(), "REFERENCE".to_string());
-    let shuffledDeck = cleanDeck.shuffle();
+    let mut shuffledDeck = cleanDeck.shuffle();
     let mut natCheck: bool = true;
     'Gameloop: loop{
         game = betting(game); // Retrieves the results from betting
-        let dualDecks = dealInitialCards(shuffledDeck.Clone());
-        game.player.deck.cards = dualDecks.0;
-        game.dealer.deck.cards = dualDecks.1;
+        for i in 0..2 { // Initial Cardscardsn(34)
+            game.player.deck.addCard(shuffledDeck.cards.remove(0));
+            game.dealer.deck.addCard(shuffledDeck.cards.remove(0));
+        }
         game = checkHand(natCheck, game);
         if (game.checkBankruptcy()) { break 'Gameloop; }
         if (natCheck) { natCheck = !natCheck; }
@@ -87,19 +88,11 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
     return game 
 }
 
-fn dealInitialCards(mut deck: deckHandler::Deck) -> (Vec<cards::Card>, Vec<cards::Card>) {
+/*fn dealInitialCards(mut deck: deckHandler::Deck) -> (Vec<cards::Card>, Vec<cards::Card>) {
 
-
-    let mut dealerCards = Vec::new(); // Vector chosen as more cards may be dealt later. 
-    dealerCards.push(deck.cards.remove(0));
-    dealerCards.push(deck.cards.remove(0)); // Remove the top card and place it into the dealers hand.
-
-    let mut playerCards = Vec::new();
-    playerCards.push(deck.cards.remove(0));
-    playerCards.push(deck.cards.remove(0)); // Same as dealer
     drop(deck);
     return (dealerCards, playerCards);
-}
+}*/
 
 fn checkHand (natCheck: bool, mut game: gameHandler::GameState) -> gameHandler::GameState {    
     if (natCheck) {
