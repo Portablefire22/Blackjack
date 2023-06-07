@@ -8,7 +8,7 @@ pub struct GameState {
     pub multipler: u8,
     pub player: crate::characterController::CharacterState,
     pub dealer: crate::characterController::CharacterState,
-
+    pub natural: bool,
 }
 
 impl GameState {
@@ -40,6 +40,44 @@ impl GameState {
         }
         return false
     }
+
+    pub fn checkVictory(&mut self) -> bool {
+
+        if (self.natural) {
+            let dealerNat: bool = self.player.naturalCheck();
+            let playerNat: bool = self.dealer.naturalCheck();
+            if (dealerNat || playerNat) {
+                if (dealerNat && playerNat) {
+                    self.setVictory("Tie".to_string(), "NULL".to_string());
+                } else if (dealerNat) {
+                    self.setVictory("Natural".to_string(), "Dealer".to_string());
+                } else if (playerNat) {
+                    self.setVictory("Natural".to_string(), "Player".to_string());
+                }
+                return true // Victory Achieved
+            }
+            self.natural = false;
+        }
+
+        if (self.player.deck.value > 21) {
+            self.setVictory("Bust".to_string(), "Dealer".to_string());
+            return true
+        } else if (self.dealer.deck.value > 21) {
+            self.setVictory("Bust".to_string(), "Player".to_string());
+            return true
+        } else {
+            // If player is no longer playing and player has less value than the dealer 
+            if (!self.player.deck.inPlay && self.player.deck.value < self.dealer.deck.value) {
+                self.setVictory("Normal".to_string(), "Dealer".to_string());
+                return true
+            } else if (!self.dealer.deck.inPlay && self.dealer.deck.value < self.player.deck.value) {
+                self.setVictory("Normal".to_string(), "Player".to_string());
+                return true
+            }
+        }
+
+        return false // No victory achieved 
+    }
 }
 
 
@@ -53,6 +91,7 @@ impl Default for GameState {
             multipler: 0,
             player: crate::characterController::CharacterState::default(),
             dealer: crate::characterController::CharacterState::default(),
+            natural: true,
         }
     }
 }

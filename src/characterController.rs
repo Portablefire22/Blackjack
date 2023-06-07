@@ -29,8 +29,12 @@ impl CharacterState {
             self.deck.addCard(freshDeck.cards.remove(0));
         }
     }
-    pub fn decideMove(&mut self) {
+    pub fn decideMove(&mut self) { // Used by the dealer 
         
+    }
+
+    pub fn naturalCheck(&mut self) -> bool {
+        return (self.deck.calculateValue() == 21)
     }
 }
 

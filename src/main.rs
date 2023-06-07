@@ -74,69 +74,14 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
 
     let mut cleanDeck = deckHandler::Deck::createDeck(cards::build_deck(), "REFERENCE".to_string());
     let mut shuffledDeck = cleanDeck.shuffle();
-    let mut natCheck: bool = true;
-    'Gameloop: loop{
+    'Gameloop: loop {
         game = betting(game); // Retrieves the results from betting
-        for i in 0..2 { // Initial Cardscardsn(34)
+        for i in 0..2 { // Initial Cards 
             game.player.deck.addCard(shuffledDeck.cards.remove(0));
             game.dealer.deck.addCard(shuffledDeck.cards.remove(0));
         }
-        game = checkHand(natCheck, game);
+        game.checkVictory();
         if (game.checkBankruptcy()) { break 'Gameloop; }
-        if (natCheck) { natCheck = !natCheck; }
     }
     return game 
 }
-
-/*fn dealInitialCards(mut deck: deckHandler::Deck) -> (Vec<cards::Card>, Vec<cards::Card>) {
-
-    drop(deck);
-    return (dealerCards, playerCards);
-}*/
-
-fn checkHand (natCheck: bool, mut game: gameHandler::GameState) -> gameHandler::GameState {    
-    if (natCheck) {
-        let dealerNat = naturalCheck(game.dealer.deck.Clone());
-        let playerNat = naturalCheck(game.player.deck.Clone());
-        
-        if (dealerNat & playerNat) {
-            game.setVictory("Tie".to_string(),"NULL".to_string());
-        }
-        else if (dealerNat) {
-            game.setVictory("Natural".to_string(), "Dealer".to_string());
-        } else if (playerNat) {
-            game.setVictory("Natural".to_string(),"Player".to_string());
-        }
-    }
-
-    // Best to check if it's a victory now,
-    if (game.victoryType == "Null".to_string()){
-        // First we check to see if the player has went bust 
-       if(game.player.deck.calculateValue() > 21) {
-            game.setVictory("Bust".to_string(),"Dealer".to_string());
-            return game
-        } else if (game.dealer.deck.calculateValue() > 21 ) {// Then we check the dealer if the player isn't bust
-            game.setVictory("Bust".to_string(),"Player".to_string());
-            return game
-        }
-
-       if (!game.player.deck.inPlay && game.player.deck.value < game.dealer.deck.value) {
-            game.setVictory("Normal".to_string(), "Dealer".to_string());
-            return game
-        } else if (!game.dealer.deck.inPlay && game.dealer.deck.value < game.player.deck.value) {
-            game.setVictory("Normal".to_string(), "Player".to_string());
-            return game
-        }
-    }
-    return game
-}
-
-fn naturalCheck(mut deck: deckHandler::Deck) -> bool {
-    // First we check for a natural 20 for the dealer by checking their first hard.
-    if (deck.calculateValue() == 21){
-        return true
-    }
-    return false
-}
-
-
