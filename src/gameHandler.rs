@@ -78,6 +78,13 @@ impl GameState {
 
         return false // No victory achieved 
     }
+
+    pub fn displayCards(&mut self) {
+        println!("Current Hand");
+        for card in &self.player.deck.cards {
+            println!("{} : {}",card.suit, card.name);
+        }
+    }
 }
 
 

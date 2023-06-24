@@ -64,7 +64,26 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
             game.player.deck.addCard(shuffledDeck.cards.remove(0));
             game.dealer.deck.addCard(shuffledDeck.cards.remove(0));
         }
-        game.checkVictory();
+
+        // Time to actually do the game loop
+        'SecondaryLoop: loop {
+            game.checkVictory();
+            game.displayCards();
+            'inputLoop: loop { 
+                println!("Make your move: ");
+                let mut playerMove = String::new();
+                std::io::stdin()
+                    .read_line(&mut playerMove)
+                    .expect("Failed to read line");
+                let playerMove: String = playerMove.trim().to_uppercase();
+                match playerMove.as_str() {
+                    "HIT" => {}, 
+                    "STAND" => {},
+                    "DOUBLE" => {},
+                    _ => println!("Use HIT, STAND, OR DOUBLE")
+                }
+            }
+        }
         if (game.checkBankruptcy()) { break 'Gameloop; }
     }
     return game 
