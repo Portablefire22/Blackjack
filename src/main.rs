@@ -67,8 +67,13 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
 
         // Time to actually do the game loop
         'SecondaryLoop: loop {
-            game.checkVictory();
             game.displayCards();
+            if (game.checkVictory()) {
+                //println!("{}", game.checkVictory());
+                //0 == 0;
+                break 'SecondaryLoop;
+            }
+            
             'inputLoop: loop { 
                 println!("Make your move: ");
                 let mut playerMove = String::new();
@@ -77,10 +82,28 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
                     .expect("Failed to read line");
                 let playerMove: String = playerMove.trim().to_uppercase();
                 match playerMove.as_str() {
-                    "HIT" => {}, 
-                    "STAND" => {},
-                    "DOUBLE" => {},
+                    "HIT" => {
+                        game.player.deck.addCard(shuffledDeck.cards.remove(0));
+                        break 'inputLoop;
+                    }, 
+                    "STAND" => { break 'inputLoop; },
+                    "DOUBLE" => {
+                        game.player.deck.addCard(shuffledDeck.cards.remove(0));
+                        game.setBet(game.bet * 2);
+                        break 'inputLoop;
+                    },
                     _ => println!("Use HIT, STAND, OR DOUBLE")
+                }
+            }
+
+            'endInputLoop: loop {
+                let mut roundRestart = String::new();
+                std::io::stdin()
+                    .read_line(&mut roundRestart)
+                    .expect("Failed to read line");
+                let roundRestart: String = roundRestart.trim().to_uppercase();
+                match roundRestart.as_str().as_bytes()[0] {
+                    _ => {}
                 }
             }
         }

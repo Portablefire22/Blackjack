@@ -85,6 +85,10 @@ impl GameState {
             println!("{} : {}",card.suit, card.name);
         }
     }
+
+    pub fn resetGame(&mut self) {
+        
+    }
 }
 
 
