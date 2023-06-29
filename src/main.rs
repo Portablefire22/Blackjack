@@ -71,6 +71,10 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
             if (game.checkVictory()) {
                 //println!("{}", game.checkVictory());
                 //0 == 0;
+                println!("Victor: {} \nType: {}", game.victor, game.victoryType);
+                println!("");
+                game.displayCards();
+                game.displayDealerCards();
                 break 'SecondaryLoop;
             }
             
@@ -95,17 +99,24 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
                     _ => println!("Use HIT, STAND, OR DOUBLE")
                 }
             }
-
+            }
             'endInputLoop: loop {
+                println!("Continue?");
                 let mut roundRestart = String::new();
                 std::io::stdin()
                     .read_line(&mut roundRestart)
                     .expect("Failed to read line");
                 let roundRestart: String = roundRestart.trim().to_uppercase();
+                println!("{}", roundRestart.as_str().as_bytes()[0]);
                 match roundRestart.as_str().as_bytes()[0] {
-                    _ => {}
+                    78 => { // N
+                        break 'endInputLoop;
+                    },
+                    89 => { // Y
+                        break 'endInputLoop;
+                    },
+                    _ => println!("{}: {} or {}", "Use", "Yes".green(), "No".red()),
                 }
-            }
         }
         if (game.checkBankruptcy()) { break 'Gameloop; }
     }

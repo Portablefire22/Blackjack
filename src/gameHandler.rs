@@ -85,9 +85,16 @@ impl GameState {
             println!("{} : {}",card.suit, card.name);
         }
     }
+    
+    pub fn displayDealerCards(&mut self) {
+        println!("Dealer Hand");
+        for card in &self.dealer.deck.cards {
+            println!("{} : {}",card.suit, card.name);
+        }
+    }
 
     pub fn resetGame(&mut self) {
-        
+
     }
 }
 
