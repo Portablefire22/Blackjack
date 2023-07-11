@@ -13,8 +13,8 @@ fn main() {
     game.setMultiplier(1);
     game.incrementBalance(100);
     game.setMultiplier(2);
-    game.dealer = characterController::CharacterState { deck: deckHandler::Deck::createDeck(Vec::new(), "Player".to_string()), controlled: true, };
-    game.dealer = characterController::CharacterState { deck: deckHandler::Deck::createDeck(Vec::new(), "Dealer".to_string()), controlled: false, };
+    game.dealer = characterController::CharacterState { deck: deckHandler::Deck::createDeck(Vec::new(), "Player".to_string()), controlled: true, stand:false, };
+    game.dealer = characterController::CharacterState { deck: deckHandler::Deck::createDeck(Vec::new(), "Dealer".to_string()), controlled: false, stand:false, };
     game = gameLoop(game);
     println!("\n");
     if (game.victor == "Dealer".to_string() || game.victor == "The House".to_string()) {
@@ -77,28 +77,33 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
                 game.displayDealerCards();
                 break 'SecondaryLoop;
             }
-            
-            'inputLoop: loop { 
-                println!("Make your move: ");
-                let mut playerMove = String::new();
-                std::io::stdin()
-                    .read_line(&mut playerMove)
-                    .expect("Failed to read line");
-                let playerMove: String = playerMove.trim().to_uppercase();
-                match playerMove.as_str() {
-                    "HIT" => {
-                        game.player.deck.addCard(shuffledDeck.cards.remove(0));
-                        break 'inputLoop;
-                    }, 
-                    "STAND" => { break 'inputLoop; },
-                    "DOUBLE" => {
-                        game.player.deck.addCard(shuffledDeck.cards.remove(0));
-                        game.setBet(game.bet * 2);
-                        break 'inputLoop;
-                    },
-                    _ => println!("Use HIT, STAND, OR DOUBLE")
+            if !game.player.stand {
+                'inputLoop: loop { 
+                    println!("Make your move: ");
+                    let mut playerMove = String::new();
+                    std::io::stdin()
+                        .read_line(&mut playerMove)
+                        .expect("Failed to read line");
+                    let playerMove: String = playerMove.trim().to_uppercase();
+                    match playerMove.as_str() {
+                        "HIT" => {
+                            game.player.deck.addCard(shuffledDeck.cards.remove(0));
+                            break 'inputLoop;
+                        }, 
+                        "STAND" => { 
+                            game.player.setStand(true);
+                            break 'inputLoop;
+                        },
+                        "DOUBLE" => {
+                            game.player.deck.addCard(shuffledDeck.cards.remove(0));
+                            game.setBet(game.bet * 2);
+                            break 'inputLoop;
+                        },
+                        _ => println!("Use HIT, STAND, OR DOUBLE")
+                    }
                 }
             }
+            if !game.dealer.stand { shuffledDeck = game.dealer.decideMove(shuffledDeck); }
             }
             'endInputLoop: loop {
                 println!("Continue?");
@@ -110,7 +115,7 @@ fn gameLoop(mut game: gameHandler::GameState) -> gameHandler::GameState{ // Main
                 println!("{}", roundRestart.as_str().as_bytes()[0]);
                 match roundRestart.as_str().as_bytes()[0] {
                     78 => { // N
-                        break 'endInputLoop;
+                        return game;
                     },
                     89 => { // Y
                         break 'endInputLoop;

@@ -66,11 +66,12 @@ impl GameState {
             self.setVictory("Bust".to_string(), "Player".to_string());
             return true
         } else {
+            println!("{}",self.player.deck.inPlay);
             // If player is no longer playing and player has less value than the dealer 
-            if (!self.player.deck.inPlay && self.player.deck.value < self.dealer.deck.value) {
+            if (self.player.stand && self.player.deck.value < self.dealer.deck.value) {
                 self.setVictory("Normal".to_string(), "Dealer".to_string());
                 return true
-            } else if (!self.dealer.deck.inPlay && self.dealer.deck.value < self.player.deck.value) {
+            } else if (self.dealer.stand && self.dealer.deck.value < self.player.deck.value) {
                 self.setVictory("Normal".to_string(), "Player".to_string());
                 return true
             }

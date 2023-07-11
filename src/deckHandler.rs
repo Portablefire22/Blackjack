@@ -102,7 +102,7 @@ impl Default for Deck { // Default values of empty deck.
             cards: Vec::new(),
             holder: "NULL".to_string(),
             value: 0,
-            inPlay: false,
+            inPlay: true,
         }
     }
 }

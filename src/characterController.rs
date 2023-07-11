@@ -20,6 +20,7 @@
 pub struct CharacterState {
     pub deck: crate::deckHandler::Deck,
     pub controlled: bool,
+    pub stand: bool,
 }
 
 
@@ -29,12 +30,21 @@ impl CharacterState {
             self.deck.addCard(freshDeck.cards.remove(0));
         }
     }
-    pub fn decideMove(&mut self) { // Used by the dealer 
-        
+    pub fn decideMove(&mut self, mut shuffled: crate::deckHandler::Deck) -> crate::deckHandler::Deck { // Used by the dealer 
+        if self.deck.value <= 16 {
+            self.deck.addCard(shuffled.cards.remove(0));
+        } else {
+            self.stand = true;
+        }
+        return shuffled
     }
 
     pub fn naturalCheck(&mut self) -> bool {
         return (self.deck.calculateValue() == 21)
+    }
+
+    pub fn setStand(&mut self, doStand: bool) {
+        self.stand = doStand;
     }
 }
 
@@ -43,6 +53,7 @@ impl Default for CharacterState {
         CharacterState { 
             deck: crate::deckHandler::Deck::default(),
             controlled: false,
+            stand: false,
         }
     }
 }
